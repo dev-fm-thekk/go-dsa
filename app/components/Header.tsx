@@ -11,7 +11,7 @@ export default function Header() {
         
         {/* Logo Section */}
         <div className="flex items-center gap-2">
-          <Link href='/' className="flex gap-2 py-3">
+          <Link href='/' className="flex gap-2py-3">
               <div className="bg-primary h-8 w-8 rounded-lg flex items-center justify-center">
                  <span className="text-primary-foreground font-black text-xs">GO</span>
               </div>
