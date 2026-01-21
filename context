@@ -1,0 +1,71 @@
+DB structure
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.profiles (
+  id uuid NOT NULL,
+  email character varying,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT profiles_pkey PRIMARY KEY (id),
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.resources (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid,
+  label text NOT NULL,
+  url text NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT resources_pkey PRIMARY KEY (id),
+  CONSTRAINT resources_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id)
+);
+CREATE TABLE public.roles (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  name text,
+  CONSTRAINT roles_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.submissions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid,
+  user_id uuid,
+  qr_code_data text UNIQUE,
+  is_verified boolean DEFAULT false,
+  verified_at timestamp without time zone,
+  submitted_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT submissions_pkey PRIMARY KEY (id),
+  CONSTRAINT submissions_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id),
+  CONSTRAINT submissions_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.tasklinks (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  task_id uuid,
+  label text NOT NULL,
+  url text NOT NULL,
+  platform USER-DEFINED DEFAULT 'Leetcode'::coding_platform,
+  created_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT tasklinks_pkey PRIMARY KEY (id),
+  CONSTRAINT tasklinks_task_id_fkey FOREIGN KEY (task_id) REFERENCES public.tasks(id)
+);
+CREATE TABLE public.tasks (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text,
+  expires_at timestamp without time zone NOT NULL,
+  created_at timestamp without time zone DEFAULT now(),
+  updated_at timestamp without time zone DEFAULT now(),
+  CONSTRAINT tasks_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.user_roles (
+  user_id uuid NOT NULL,
+  role_id uuid NOT NULL,
+  CONSTRAINT user_roles_pkey PRIMARY KEY (user_id, role_id),
+  CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT user_roles_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id)
+);
+
+
+Here is my requirements
+1. Admin uploading tasks through /admin page
+2. /admin pages should display all created tasks, and a button to mark it as go-live at a certain date
+3. When user presses go live it should be available in session/live page
+4. user should be able to start session, complete the task in the given time.
+5. After time expiry or on submission a qr code is generated for updating the streak score and level score

@@ -1,3 +1,5 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -9,14 +11,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { User, Settings, CreditCard, LogOut, LayoutDashboard } from "lucide-react"
+import { useAuth } from "../context/useAuth";
+import { Button } from "@/components/ui/button";
+import SignInButton from "./signInButton";
+import { signInWithGoogle } from "../sign-in/auth";
 
 export function ProfileDropDownMenu() {
-  return (
+  const {user, loading, signOut} = useAuth();
+
+  if (loading) return (<p>Loading ...</p>);
+  
+  if (!user) return <SignInButton callback={signInWithGoogle}/>
+    return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {/* Added cursor-pointer and a subtle ring on hover for better UX */}
         <Avatar className="h-9 w-9 cursor-pointer transition-all hover:ring-2 hover:ring-primary/20">
-          <AvatarImage src="https://github.com/shadcn.png" alt="@abhiram" />
+          <AvatarImage src={user?.user_metadata.avatar_url} alt={user?.user_metadata.name} />
           <AvatarFallback className="bg-primary/10 text-primary font-bold">AB</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
@@ -27,9 +38,9 @@ export function ProfileDropDownMenu() {
       <DropdownMenuContent className="w-64 p-2" align="end" sideOffset={8}>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1 py-1">
-            <p className="text-sm font-semibold leading-none">Abhiram</p>
+            <p className="text-sm font-semibold leading-none">{user?.user_metadata.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              abhiram@go-dsa.com
+              {`${user?.user_metadata.name}@go-dsa.com`}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -53,9 +64,9 @@ export function ProfileDropDownMenu() {
         
         <DropdownMenuSeparator className="my-1" />
         
-        <DropdownMenuItem className="py-2.5 cursor-pointer flex items-center gap-2 text-destructive focus:text-destructive focus:bg-destructive/10">
+        <DropdownMenuItem className="py-2.5 cursor-pointer flex items-center gap-2 text-destructive">
           <LogOut className="w-4 h-4" />
-          <span>Log out</span>
+          <Button variant='destructive' onClick={signOut}>Sign Out</Button>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
