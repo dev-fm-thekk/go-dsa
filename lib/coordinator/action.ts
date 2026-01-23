@@ -1,7 +1,7 @@
 import { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "../supabase/client";
 
-type Task = {
+export type Task = {
     id: string,
     title: string,
     description: string,
@@ -11,7 +11,7 @@ type Task = {
     published: boolean
 }
 
-type TaskResources = {
+export type TaskResources = {
     id: string,
     task_id: string,
     label: string,
@@ -19,7 +19,7 @@ type TaskResources = {
     created_at: Date
 }
 
-type TaskLinks = {
+export type TaskLinks = {
     id: string,
     task_id: string,
     label: string,
@@ -62,8 +62,12 @@ export const publishATask = async (user: User, task_id: string) => {
         let result = await authorizeCoordinator(user, supabase);
         if (result.error) return result;
         
-        let response = await supabase.from('task').update({ publihed: true }).eq("id", task_id);
-        if (response.error) return response.error;
+        console.log(task_id);
+        let response = await supabase.from('tasks').update({ published: true }).eq("id", task_id);
+        console.log(response);
+        if (response.error) return {
+            error: response.error
+        };
         return {
             success: 'Published task'
         }
@@ -90,6 +94,24 @@ export const uploadTask = async (user: User, task: Task) => {
         console.error(err);
         return {
             error: err instanceof Error ? err.message : "unexpected error"
+        }
+    }
+}
+
+export const getTasks = async () => {
+    try {
+        const supabase = createClient();
+        let response = await supabase.from('tasks').select('*');
+        if (response.error) return {
+            error: response.error
+        }
+        return {
+            success: response.data as Task[]
+        };
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err instanceof Error ? err.message : 'unexpected error'
         }
     }
 }

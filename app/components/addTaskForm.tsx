@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { User } from "@supabase/supabase-js"
 import { uploadTask } from "@/lib/coordinator/action"
+import { redirect } from "next/navigation"
 
 // --- Simplified Validation Schema ---
 const formSchema = z.object({
@@ -48,7 +49,7 @@ export default function AddTaskForm({ user }: {user: User } ) {
     })
     
     let response = await uploadTask(user, data)
-    console.log(response);
+    if (response.success) redirect('/admin')
   }
 
   return (
