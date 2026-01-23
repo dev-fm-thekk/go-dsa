@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Dialog, 
   DialogContent, 
@@ -19,37 +20,74 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Globe, Link2 } from "lucide-react";
+import { Globe, Link2, Loader2 } from "lucide-react";
+import { addTaskLink } from "@/lib/task/action";
 
 interface TaskLinkModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { label: string; url: string; platform: string }) => void;
+  onSave?: (data: { label: string; url: string; platform: string }) => void;
   taskId: string;
+  onSuccess?: () => void;
 }
 
-export function TaskLinkModal({ isOpen, onClose, onSave, taskId }: TaskLinkModalProps) {
+export function TaskLinkModal({ isOpen, onClose, onSave, taskId, onSuccess }: TaskLinkModalProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     label: "",
     url: "",
-    platform: "other"
+    platform: "Leetcode"
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.label.trim() || !formData.url.trim()) {
+      alert("Please fill in all fields");
+      return;
+    }
+
     setLoading(true);
     
-    // Logic to call your Supabase action would go here
-    await onSave(formData);
-    
-    setLoading(false);
-    setFormData({ label: "", url: "", platform: "other" }); // Reset
-    onClose();
+    try {
+      const result = await addTaskLink({
+        task_id: taskId,
+        label: formData.label.trim(),
+        url: formData.url.trim(),
+        platform: formData.platform
+      });
+
+      if (result.error) {
+        console.error("Failed to add task link:", result.error);
+        alert(`Failed to add link: ${result.error}`);
+      } else {
+        // Call optional onSave callback for parent component
+        if (onSave) {
+          await onSave(formData);
+        }
+        onSuccess?.();
+        router.refresh(); // Refresh the page to show the new link
+        setFormData({ label: "", url: "", platform: "other" }); // Reset
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error adding task link:", error);
+      alert("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    if (!loading) {
+      setFormData({ label: "", url: "", platform: "other" });
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
@@ -74,11 +112,8 @@ export function TaskLinkModal({ isOpen, onClose, onSave, taskId }: TaskLinkModal
                   <SelectValue placeholder="Select platform" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="discord">Discord</SelectItem>
-                  <SelectItem value="github">GitHub</SelectItem>
-                  <SelectItem value="twitter">Twitter / X</SelectItem>
-                  <SelectItem value="linkedin">LinkedIn</SelectItem>
-                  <SelectItem value="other">Other / Website</SelectItem>
+                  <SelectItem value="Leetcode">Leetcode</SelectItem>
+                  <SelectItem value="HackerRank">HackerRank</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -114,11 +149,18 @@ export function TaskLinkModal({ isOpen, onClose, onSave, taskId }: TaskLinkModal
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Add Link"}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Add Link"
+              )}
             </Button>
           </DialogFooter>
         </form>

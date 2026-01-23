@@ -44,13 +44,33 @@ export function TaskCard({ task, resources = [], links = [], onUpdate }: TaskCar
   // Logic to handle saving links from the modal
   const handleSaveLink = async (data: any) => {
     console.log("Saving Link for Task:", task.id, data);
-    // You would typically call an API here to add the link to the DB
-    setLinkModalOpen(false);
+    // The modal now handles the API call, this is just for any additional logic
+  };
+
+  // Handle successful resource/link addition - refresh data if needed
+  const handleResourceSuccess = () => {
+    // You can add logic here to refresh resources list
+    // For now, the parent component should handle data refresh
+    console.log("Resource added successfully");
+  };
+
+  const handleLinkSuccess = () => {
+    // You can add logic here to refresh links list
+    // For now, the parent component should handle data refresh
+    console.log("Task link added successfully");
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    // if (onUpdate) await onUpdate(task.id, editData);
+    if (onUpdate) {
+      // Convert expires_at string to Date object
+      const updateData: Partial<Task> = {
+        title: editData.title,
+        description: editData.description,
+        expires_at: editData.expires_at ? new Date(editData.expires_at) : undefined
+      };
+      await onUpdate(task.id, updateData);
+    }
     setIsSaving(false);
     setIsEditing(false);
   };
@@ -211,13 +231,15 @@ export function TaskCard({ task, resources = [], links = [], onUpdate }: TaskCar
       <ResourceModal 
         isOpen={isResourceModalOpen} 
         onClose={() => setResourceModalOpen(false)} 
-        taskId={task.id} 
+        taskId={task.id}
+        onSuccess={handleResourceSuccess}
       />
       <TaskLinkModal 
         isOpen={isLinkModalOpen} 
         onClose={() => setLinkModalOpen(false)} 
         onSave={handleSaveLink} 
-        taskId={task.id} 
+        taskId={task.id}
+        onSuccess={handleLinkSuccess}
       />
     </Card>
   );
