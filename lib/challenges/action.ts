@@ -1,6 +1,6 @@
 // Adjust these imports based on whether this middleware runs on the server or client
 import { createClient } from "@/supabase/client";
-import { Challenge, ChallengeTask, Task } from "../type";
+import { Challenge, ChallengeTask, PublicUser, Task } from "../type";
 
 
 export type ActionResponse<T> = { data?: T; error?: string };
@@ -164,6 +164,46 @@ export const removeTaskFromChallenge = async (
         return { error: "Failed to remove task association" };
     }
 };
+
+export const getChallengeById = async (id: string) => {
+    try {
+        const supabase = createClient();
+        const response = await supabase.from('challenges').select('*').eq('id', id).single();
+        if (response.error) throw new Error(response.error.message);
+        return {
+            data: response.data as Challenge
+        }
+    } catch (err) {
+        console.error(err);
+        return {
+            error: err instanceof Error ? err.message : 'unexpected error'
+        }
+    }
+}
+
+export const getChallenges = async (user: Pick<PublicUser, "role">) => { 
+    try {
+        const supabase = createClient();
+        if (user?.role === "admin") {
+            const response = await supabase.from('challenges').select('*');
+            if (response.error) throw new Error(response.error.message);
+            return {
+                data: response.data
+            }
+        }
+
+        const response = await supabase.from('challenges').select("*").eq("published", true);
+        if (response.error) console.error(response.error.message)
+        return {
+            data: response.data
+        }
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err instanceof Error ? err.message : 'unexpected error'
+        }
+    }
+}
 
 export const deleteTask = async (
     id: string,

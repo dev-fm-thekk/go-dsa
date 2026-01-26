@@ -1,3 +1,5 @@
+import { User } from "@supabase/supabase-js";
+
 export type UserRole = "admin" | "user";
 export type UserLevel = "noob" | "veteran" | "pro" | "master";
 export type SubmissionStatus =
@@ -7,10 +9,9 @@ export type SubmissionStatus =
     | "reviewed";
 export type TaskType = "video" | "quiz" | "code" | "text";
 
-export interface PublicUser {
+export interface PublicUser extends User {
     id: string;
     name: string | null;
-    email: string | null;
     role: UserRole;
     level: UserLevel;
     streak: number;

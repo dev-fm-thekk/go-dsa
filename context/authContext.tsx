@@ -25,10 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         // Check if user is already logged in
         const checkUser = async () => {
+            const supabase = createClient();
             try {
                 const {
                     data: { user },
                 } = await supabase.auth.getUser();
+                
                 setUser(user);
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to check user');

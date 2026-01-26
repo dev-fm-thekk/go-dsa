@@ -5,8 +5,7 @@ import LoginPage from '@/components/login-page'
 import HomePage from '@/components/home-page'
 
 export default function Page() {
-  const { user, loading, signInWithGoogle, signOut } = useAuth()
-
+  const { user, loading, signInWithGoogle, signOut } = useAuth();
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -17,7 +16,6 @@ export default function Page() {
       </div>
     )
   }
-
   return user ? (
     <HomePage user={user} onLogout={signOut} />
   ) : (

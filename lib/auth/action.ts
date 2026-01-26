@@ -1,4 +1,5 @@
 import { createClient } from "@/supabase/client";
+import { PublicUser } from "../type";
 
 export interface AuthError {
   error: string;
@@ -20,8 +21,11 @@ export type SignOutResult =
   | SignOutSuccess
   | AuthError;
 
+export type FetchUserResult = 
+    | PublicUser
+    | { error: string }
 
-export const signInWithGoogle = async (): Promise<SignInWithGoogleResult> => {
+    export const signInWithGoogle = async (): Promise<SignInWithGoogleResult> => {
   try {
     const supabase = createClient();
 
@@ -61,3 +65,19 @@ export const signOut = async (): Promise<SignOutResult> => {
     };
   }
 };
+
+export const fetchUser = async (id: string) => {
+    try {
+        const supabase = createClient();
+        const response = await supabase.from('users').select('*').eq("id", id).single();
+        if (response.error) throw new Error(response.error.message);
+        return {
+            data: response.data
+        }
+    } catch(err) {
+        console.error(err);
+        return {
+            error: err instanceof Error ? err.message : 'unexpected error'
+        }
+    }
+}
